@@ -20,13 +20,18 @@ return new class extends Migration
             $table->integer('external_id');
             $table->integer("external_item_id");
             $table->string('item_code');
+            $table->string("batch_no");
             $table->string('suom')->nullable();
             $table->string('duom')->nullable();
             $table->string('ouom')->nullable();
             $table->string('suom_per_duom')->nullable();
             $table->string('suom_per_ouom')->nullable();
             $table->string('purchase_price')->nullable();
-            //No of Sale Units per Delivery Unit, Qty of Sale units Purchased(I!*C!),Lead Time(days) G! - AR!Í
+            $table->string('sale_units_per_delivery_unit')->nullable();
+            $table->string('daily_consumption')->nullable();
+            $table->integer('safety_stock_days')->nullable();
+            $table->string('buffer_stock')->default(0);
+            $table->string('opening_stock')->default(0);
             $table->timestamps();
         });
     }

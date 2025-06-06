@@ -22,7 +22,6 @@ return new class extends Migration
             $table->integer('returns')->default(0);
             $table->integer('external_id');
             $table->timestamps();
-            $table->timestamps();
         });
     }
 

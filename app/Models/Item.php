@@ -9,6 +9,7 @@ class Item extends Model
     //
 
 
+
     protected $fillable = [
         'entity_id',
         'name',
@@ -22,7 +23,13 @@ class Item extends Model
         'external_id',
         'external_item_id',
         'quantity',
-        'date_of_delivery'
+        'date_of_delivery',
+        'batch_no',
+        'sale_units_per_delivery_unit',
+        'daily_consumption',
+        'safety_stock_days',
+        'buffer_stock',
+        'opening_stock'
     ];
 
     //relationships
