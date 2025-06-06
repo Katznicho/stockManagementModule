@@ -20,7 +20,9 @@ class Item extends Model
         'suom_per_ouom',
         'purchase_price',
         'external_id',
-        'external_item_id'
+        'external_item_id',
+        'quantity',
+        'date_of_delivery'
     ];
 
     //relationships
