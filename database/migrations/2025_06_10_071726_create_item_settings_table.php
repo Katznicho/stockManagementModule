@@ -11,17 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('stock_level_days_reports', function (Blueprint $table) {
+        Schema::create('item_settings', function (Blueprint $table) {
             $table->id();
-            // $table->string('item_name');
-            $table->foreignId('item_id')->constrained()->onDelete('cascade');
+            $table->foreignId('item_id')->nullable()->constrained()->onDelete('cascade'); // Foreign key to items table
             $table->integer('external_item_id'); // External ID for the item
             $table->foreignId('entity_id')->constrained('entities');
             $table->integer('external_id');
-            $table->integer('current_stock_level')->default(0); // M!
-            $table->decimal('daily_sales', 10, 2)->default(0);   // V!
-            $table->decimal('average_sales', 10, 2)->default(0); // AA!
-            $table->decimal('stock_level_days', 10, 2)->default(0); // M! / (V! or AA!)
+            $table->string("name");
+            $table->string('daily_consumption')->nullable();
+            $table->integer('safety_stock_days')->nullable();
+            $table->string('buffer_stock')->default(0);
+            $table->string('opening_stock')->default(0);
+            
             $table->timestamps();
         });
     }
@@ -31,6 +32,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('stock_level_days_reports');
+        Schema::dropIfExists('item_settings');
     }
 };

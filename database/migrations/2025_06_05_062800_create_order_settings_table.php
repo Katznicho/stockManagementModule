@@ -13,6 +13,8 @@ return new class extends Migration
     {
         Schema::create('order_settings', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('entity_id')->constrained('entities');
+            $table->integer('external_id');
             $table->integer('notification_to_order_days')->nullable();
             $table->foreignId('entity_id')->constrained('entities');
             $table->integer('external_id');

@@ -23,7 +23,9 @@ class StockMetric extends Model
         'safety_stock_suom',
         'buffer_stock_days',
         'buffer_stock_suom',
-        'external_id'
+        'external_id',
+        'entity_id',
+        'external_id',
     ];
 
     //relationships

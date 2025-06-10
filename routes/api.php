@@ -2,9 +2,12 @@
 
 use App\Http\Controllers\API\BranchController;
 use App\Http\Controllers\API\EntityController;
+use App\Http\Controllers\API\ItemController;
+use App\Http\Controllers\API\StockController;
 use App\Http\Controllers\API\StoreController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
 
 
 
@@ -29,6 +32,14 @@ Route::get('/branches/external/{external_id}', [BranchController::class, 'getBra
 Route::get("getStoresByEntityId/{entityId}", [StoreController::class, "getStoresByEntityId"]);
 Route::get("getStoresByBranchId/{branchId}", [StoreController::class, "getStoresByBranchId"]);
 Route::get("getStoreByExternalId/{externalId}", [StoreController::class, "getStoreByExternalId"]);
+
+
+//items
+Route::get("items/external/{externalId}", [App\Http\Controllers\API\ItemController::class, "getItemsByExternalId"]);
+Route::get("getItemsByExternalId/{externalId}", [ItemController::class, "getItemsByExternalId"]);
+
+//getStockByExternalId
+Route::get('getStockByExternalId/{externalId}', [StockController::class, 'getStockByExternalId']);
 
 
 // Route::get("getBranchesByExternalId/")

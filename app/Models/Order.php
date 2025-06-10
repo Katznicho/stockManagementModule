@@ -18,7 +18,9 @@ class Order extends Model
         'order_amount_ugx',
         'order_date',
         'status',
-        'external_id'
+        'external_id',
+        'entity_id',
+
     ];
 
     //relationships

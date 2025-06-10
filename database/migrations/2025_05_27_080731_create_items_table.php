@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('items', function (Blueprint $table) {
             $table->id();
             $table->foreignId('entity_id')->constrained('entities');
+            $table->integer('external_id');
             $table->string('name');
             $table->string('quantity');
             $table->date('date_of_delivery');
@@ -27,11 +28,12 @@ return new class extends Migration
             $table->string('suom_per_duom')->nullable();
             $table->string('suom_per_ouom')->nullable();
             $table->string('purchase_price')->nullable();
-            $table->string('sale_units_per_delivery_unit')->nullable();
-            $table->string('daily_consumption')->nullable();
-            $table->integer('safety_stock_days')->nullable();
-            $table->string('buffer_stock')->default(0);
-            $table->string('opening_stock')->default(0);
+            $table->integer('no_of_sale_units_per_duom'); // C!
+            $table->integer('qty_sale_units_purchased'); // I * C!
+            $table->integer('qty'); // Total quantity purchased in DUOM or SUOM
+            $table->string("lead_time")->nullable();
+            $table->string("stock_levels_report")->nullable();
+            $table->string("inventory_valuation_report")->nullable();
             $table->timestamps();
         });
     }

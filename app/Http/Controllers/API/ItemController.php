@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\Item;
+use App\Models\ItemSetting;
 use Illuminate\Http\Request;
 
 class ItemController extends Controller
@@ -44,4 +45,37 @@ class ItemController extends Controller
         return $item;
     }
     public function destroy($id) { Item::destroy($id); return response()->noContent(); }
+
+
+    public function getItemsByExternalId($externalId) {
+        // return Item::where('external_id', $externalId)->get();
+        try {
+        //     $store = Store::where('external_id', $externalId)
+        //     ->with(['branch'])
+        //    ->get();
+        //    return response()->json(['data' => $store,'success' => true]);
+
+          $items =  Item::where('external_id', $externalId)->get();
+            return response()->json(['data' => $items,'success' => true]);
+            //code...
+        } catch (\Throwable $th) {
+            //throw $th;
+            return  response()->json([
+               'message' => $th->getMessage()
+            ], 500);
+        }
+    }
+
+    // public function getItemSettingsByExternalId($externalId) {
+    //     try {
+    //         itemSettings =  ItemSetting::where('external_id', $externalId)->get();
+    //         return response()->json(['data' => itemSettings,'success' => true]);
+    //         //code...
+    //     } catch (\Throwable $th) {
+    //         //throw $th;
+    //         return  response()->json([
+    //           'message' => $th->getMessage()
+    //         ], 500);
+    //     }
+    // }
 }

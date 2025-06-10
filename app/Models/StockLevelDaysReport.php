@@ -13,7 +13,9 @@ class StockLevelDaysReport extends Model
         'average_sales',
         'stock_level_days',
         'external_item_id',
-        'item_id'
+        'item_id',
+        'entity_id',
+        'external_id',
     ];
 
     protected static function booted()

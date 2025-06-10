@@ -22,7 +22,8 @@ class Stock extends Model
         'closing_stock_suom',
         'date_of_delivery',
         'stock_aging_days',
-        'external_id'
+        'external_id',
+        'purchase_price'
     ];
 
 

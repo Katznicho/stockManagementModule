@@ -19,9 +19,12 @@ return new class extends Migration
             $table->foreignId('store_id')->constrained('stores');
             $table->string('batch_no');
             $table->integer('external_id');
-            
+             
+            $table->string("purchase_price")->nullable();
+
             $table->string('duom'); // Delivery Unit of Measure
             $table->string('suom'); // Sale Unit of Measure
+
             $table->integer('no_of_sale_units_per_duom'); // C!
             $table->integer('qty_sale_units_purchased'); // I * C!
             $table->integer('qty'); // Total quantity purchased in DUOM or SUOM
@@ -33,6 +36,13 @@ return new class extends Migration
             $table->date('date_of_delivery');
             $table->integer('stock_aging_days');
             $table->integer('lead_time_days')->nullable(); // G! - AR!
+
+            $table->string('suom');
+            $table->string("duom");
+            $table->string("duom");
+            $table->string('suom_per_duom');
+            $table->string('suom_per_ouom');
+
             
             $table->timestamps();
         });

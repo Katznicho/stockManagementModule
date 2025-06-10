@@ -18,6 +18,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->nullable()->constrained('entity_users')->nullOnDelete();
             $table->integer('external_id');
+            
             $table->string('action'); // e.g., created, updated, deleted
             $table->string('model_type'); // App\Models\Stock
             $table->unsignedBigInteger('model_id'); // 1

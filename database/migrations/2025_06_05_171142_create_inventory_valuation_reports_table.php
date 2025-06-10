@@ -16,6 +16,8 @@ return new class extends Migration
             //  $table->string('item_name');
             $table->foreignId('item_id')->constrained()->onDelete('cascade'); // Foreign key to items table
             $table->integer('external_item_id'); // External ID for the item
+            $table->foreignId('entity_id')->constrained('entities');
+            $table->integer('external_id');
             $table->integer('current_stock_level')->default(0); // M!
             $table->decimal('price_per_litre', 10, 2)->default(0); // F!
             $table->decimal('conversion_rate', 10, 2)->default(1); // J!

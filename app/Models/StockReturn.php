@@ -17,7 +17,9 @@ class StockReturn extends Model
         'qty_suom',
         'reason',
         'return_date',  
-        'external_id'
+        'external_id',
+        'entity_id',
+        'external_id',
     ];
 
     //relations

@@ -13,6 +13,8 @@ return new class extends Migration
     {
         Schema::create('make_orders', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('entity_id')->constrained('entities');
+            $table->integer('external_id');
             // Forecast Demand Days input
             $table->integer('forecast_demand_days')->nullable();
             // Output fields (usually calculated, can be stored if needed)
