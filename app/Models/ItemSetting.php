@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 class ItemSetting extends Model
 {
     //
+    // $table->integer('external_store_id')->nullable();
+    // $table->integer('external_store_name')->nullable();
 
 
     protected $fillable = [
@@ -19,6 +21,8 @@ class ItemSetting extends Model
         'name',
         'entity_id',
         'external_id',
+        'external_store_id',
+        'external_store_name'
     ];
 
     public function item()

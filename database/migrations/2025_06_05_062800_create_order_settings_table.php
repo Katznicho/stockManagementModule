@@ -16,8 +16,6 @@ return new class extends Migration
             $table->foreignId('entity_id')->constrained('entities');
             $table->integer('external_id');
             $table->integer('notification_to_order_days')->nullable();
-            $table->foreignId('entity_id')->constrained('entities');
-            $table->integer('external_id');
             $table->decimal('anticipated_peak_period_percentage', 5, 2)->nullable();
             $table->decimal('expected_increase_during_peak', 5, 2)->nullable();
             $table->decimal('shrinkage_total_amount', 15, 2)->default(0);

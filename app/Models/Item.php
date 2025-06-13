@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 class Item extends Model
 {
     //
+    // $table->integer('external_store_id')->nullable();
+    // $table->integer('external_store_name')->nullable();
 
 
 
@@ -29,12 +31,21 @@ class Item extends Model
         'daily_consumption',
         'safety_stock_days',
         'buffer_stock',
-        'opening_stock'
+        'opening_stock',
+        'external_store_id',
+        'external_store_name',
+        
     ];
 
     //relationships
     public function entity()
     {
         return $this->belongsTo(Entity::class);
+    }
+
+    //item has many stock
+    public function stocks()
+    {
+        return $this->hasMany(Stock::class);
     }
 }

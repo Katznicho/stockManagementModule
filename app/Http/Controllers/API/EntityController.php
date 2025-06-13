@@ -9,6 +9,7 @@ use App\Models\Item;
 use App\Models\ItemSetting;
 use App\Models\OrderSetting;
 use App\Models\ProductStockLevel;
+use App\Models\Stock;
 use App\Models\StockLevelDaysReport;
 use App\Models\Store;
 use Illuminate\Http\Request;
@@ -81,7 +82,7 @@ class EntityController extends Controller
 
             // Loop through products and save to the store
             foreach ($request->products as $product) {
-                $item = ItemSetting::create([
+                $itemSetting = ItemSetting::create([
                     'entity_id' => $entity->id,
                     'external_id' => $request->external_id,
                     'external_item_id' => $product['product_id'],
@@ -92,24 +93,50 @@ class EntityController extends Controller
                     'opening_stock' => $product['opening_stock'],
                 ]);
 
-                // ProductStockLevel::create([
-                //     'item_id' => $item->id, // ✅ Correct: use DB ID
-                //     'external_item_id' => $item->external_item_id,
-                //     'opening_stock' => $product['opening_stock'],
-                //     'deliveries_to_date' => 0,
-                //     'sales_to_date' => 0,
-                //     'returns' => 0,
-                //     'external_id' => $request->external_id,
-                // ]);
+                $item = Item::create([
+                    'entity_id' => $entity->id,
+                    'external_item_id' => $product['product_id'],
+                    'name' => $itemSetting->name ?? 'Product ' . $product['product_id'],
+                    'item_code' => 'ITEM-' . $product['product_id'] . '-' . time(),
+                    'external_id' => $entity->id,
+                    'quantity' => $product['opening_stock'], // Initial quantity in delivery units
+                ]);
 
-                // StockLevelDaysReport::create([
-                //     'item_id' => $item->id, // ✅ Correct: use DB ID
-                //     'external_item_id' => $item->external_item_id,
-                //     'current_stock_level' => $product['opening_stock'],
-                //     'daily_sales' => 0,
-                //     'average_sales' => 0,
-                //     'stock_level_days' => 0,
-                // ]);
+                ProductStockLevel::create([
+                    'item_id' => $item->id, // ✅ Correct: use DB ID
+                    'external_item_id' => $product['product_id'],
+                    'opening_stock' => $product['opening_stock'] ?? 0,
+                    'deliveries_to_date' => 0,
+                    'sales_to_date' => 0,
+                    'returns' => 0,
+                    'external_id' =>$request->external_id,
+                    'entity_id' => $entity->id,
+                ]);
+
+                StockLevelDaysReport::create([
+                    'item_id' => $item->id, // ✅ Correct: use DB ID
+                    'external_item_id' => $product['product_id'],
+                    'current_stock_level' => $product['opening_stock'] ?? 0,
+                    'daily_sales' => 0,
+                    'average_sales' => 0,
+                    'stock_level_days' => 0,
+                    'entity_id' => $entity->id,
+                    'external_id' =>$request->external_id,
+                ]);
+
+                //create stock for each item
+                // Create Stock entry
+                $stock = Stock::create([
+                    'entity_id' => $entity->id,
+                    // 'branch_id' => $vali,
+                    'item_id' => $item->id,
+                    'store_id' => $store->id,
+                    'external_store_id'=>$product['external_store_id'],
+                    'qty' => $product['opening_stock'], // Total quantity purchased in DUOM or SUOM
+                ]);
+                //create stock for each item
+
+
             }
 
             OrderSetting::create([

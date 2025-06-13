@@ -14,7 +14,8 @@ class ProductStockLevel extends Model
         'sales_to_date',
         'returns',
         'external_id',
-        'external_item_id'
+        'external_item_id',
+        'entity_id'
     ];
 
     // Accessor for Current Stock
@@ -25,6 +26,6 @@ class ProductStockLevel extends Model
 
     public function product()
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(Item::class);
     }
 }

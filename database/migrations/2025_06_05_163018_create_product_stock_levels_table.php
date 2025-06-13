@@ -16,7 +16,7 @@ return new class extends Migration
             // $table->foreignId('item_id')->constrained()->onDelete('cascade');
             $table->foreignId('item_id')->constrained()->onDelete('cascade');
             $table->foreignId('entity_id')->constrained('entities');
-            $table->integer('external_id');
+
             $table->integer("external_item_id");
             $table->integer('opening_stock')->default(0);
             $table->integer('deliveries_to_date')->default(0);

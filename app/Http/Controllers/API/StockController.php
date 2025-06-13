@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Models\Entity;
 use App\Models\Item;
 use App\Models\ItemSetting;
+use App\Models\ProductStockLevel;
 use App\Models\Stock;
+use App\Models\StockLevelDaysReport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -36,7 +39,7 @@ class StockController extends Controller
         ]);
 
         // Check for ItemSetting
-        $itemSetting = ItemSetting::where('entity_id', $validated['external_id'])
+        $itemSetting = ItemSetting::where('external_id', $validated['external_id'])
             ->where('external_item_id', $validated['product_id'])
             ->first();
 
@@ -45,6 +48,15 @@ class StockController extends Controller
                 'message' => 'Setup failed',
                 'success' => false,
                 'data' => 'No item setting found for the given entity and product'
+            ], 400);
+        }
+
+        $entity =  Entity::where('external_id', $validated['external_id'])->first();
+        if (!$entity) {
+            return response()->json([
+               'message' => 'Setup failed',
+               'success' => false,
+                'data' => 'No entity found for the given external_id'
             ], 400);
         }
 
@@ -69,16 +81,30 @@ class StockController extends Controller
                 'item_code' => 'ITEM-' . $validated['product_id'] . '-' . time(),
                 'external_id' => $validated['external_id'],
                 'quantity' => $validated['quantity'], // Initial quantity in delivery units
-                // 'suom' => $validated['suom'],
-                // 'duom' => $validated['duom'],
-                // 'ouom' => $validated['duom'], // Assuming ouom is same as duom
-                // 'suom_per_duom' => $validated['sale_units_per_delivery'],
-                // 'suom_per_ouom' => $validated['sale_units_per_delivery'],
-                // 'purchase_price' => $validated['purchase_price'],
-                // 'opening_stock' => $validated['qty_sale_units'], // Opening stock in sale units
-                // 'daily_consumption' => 0, // Uncomment if needed
-                // 'safety_stock_days' => 0, // Uncomment if needed
-                // 'buffer_stock' => 0, // Uncomment if needed
+ 
+            ]);
+
+
+            ProductStockLevel::create([
+                'item_id' => $item->id, // ✅ Correct: use DB ID
+                'external_item_id' => $item->external_item_id,
+                'opening_stock' => $itemSetting->opening_stock?? 0,
+                'deliveries_to_date' => 0,
+                'sales_to_date' => 0,
+                'returns' => 0,
+                'external_id' =>$validated['external_id'],
+                'entity_id' => $entity->id,
+            ]);
+
+            StockLevelDaysReport::create([
+                'item_id' => $item->id, // ✅ Correct: use DB ID
+                'external_item_id' => $item->external_item_id,
+                'current_stock_level' => $itemSetting->opening_stock,
+                'daily_sales' => 0,
+                'average_sales' => 0,
+                'stock_level_days' => 0,
+                'entity_id' => $entity->id,
+                'external_id' => $validated['external_id'],
             ]);
         }
 
@@ -97,10 +123,13 @@ class StockController extends Controller
             'external_id' => $validated['external_id'],
             'suom' => $validated['suom'],
             'duom' => $validated['duom'],
-            'ouom' => $validated['duom'], // Assuming ouom is same as duom
+            // 'ouom' => $validated['duom'], // Assuming ouom is same as duom
             'suom_per_duom' => $validated['sale_units_per_delivery'],
             'suom_per_ouom' => $validated['sale_units_per_delivery'],
             'purchase_price' => $validated['purchase_price'],
+            'no_of_sale_units_per_duom'=> $validated['sale_units_per_delivery'],
+            'qty_sale_units_purchased'=> $validated['qty_sale_units'],
+            'qty'=>$validated['quantity'], // Total quantity purchased in DUOM or SUOM
         ]);
 
         // Commit transaction
@@ -151,6 +180,7 @@ class StockController extends Controller
     public  function getStockByExternalId($externalId) {
         try {
             $store = Item::where('external_id', $externalId)
+             ->with(['stocks'])
             ->get();
             return response()->json(['data' => $store,'success' => true]);
         }

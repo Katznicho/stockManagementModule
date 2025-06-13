@@ -16,6 +16,8 @@ return new class extends Migration
             $table->foreignId('item_id')->nullable()->constrained()->onDelete('cascade'); // Foreign key to items table
             $table->integer('external_item_id'); // External ID for the item
             $table->foreignId('entity_id')->constrained('entities');
+            $table->integer('external_store_id')->nullable();
+            $table->integer('external_store_name')->nullable();
             $table->integer('external_id');
             $table->string("name");
             $table->string('daily_consumption')->nullable();

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Stock extends Model
 {
     //
-    use LogsActivity;
+    // use LogsActivity;
 
 
     protected $fillable = [
@@ -23,7 +23,19 @@ class Stock extends Model
         'date_of_delivery',
         'stock_aging_days',
         'external_id',
-        'purchase_price'
+        'purchase_price',
+        'qty_sale_units_purchased',
+        'no_of_sale_units_per_duom',
+        'suom',
+        'duom',
+        'ouom',
+        'suom_per_duom',
+        'suom_per_ouom',
+        'qty_sale_units',
+        'external_id',
+        'qty',
+        'external_store_id'
+        
     ];
 
 
