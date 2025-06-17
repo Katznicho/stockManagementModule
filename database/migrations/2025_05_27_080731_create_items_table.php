@@ -20,9 +20,10 @@ return new class extends Migration
             // $table->foreignId('store_id')->constrained('stores');
             //$table
             $table->integer('external_store_id')->nullable();
-            $table->integer('external_store_name')->nullable();
+            $table->string('external_store_name')->nullable();
             $table->integer('item_setting_id')->nullable();
             $table->integer('external_id');
+            $table->string("store_id")->nullable();
             $table->string('name');
             $table->string('quantity');
             $table->date('date_of_delivery')->nullable();
