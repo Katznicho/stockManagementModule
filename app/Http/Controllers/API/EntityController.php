@@ -40,20 +40,23 @@ class EntityController extends Controller
     {
         try {
             $request->validate([
-                'entity_name' => 'required|string|max:255',
-                'branch_name' => 'required|string|max:255',
-                'store_name' => 'required|string|max:255',
-                'external_id' => 'required',
-                // Validate products array
-                'products' => 'required|array',
-                'products.*.product_id' => 'required',
-                'products.*.product_name' => 'required|string|max:255',
-                'products.*.daily_consumption' => 'required|numeric|min:0',
-                'products.*.safety_stock_days' => 'required|integer|min:0',
-                'products.*.buffer_stock' => 'required|integer|min:0',
-                'products.*.opening_stock' => 'required|integer|min:0',
-                'notification_to_order' => 'required|integer|min:1',
-            ]);
+    'entity_name' => 'required|string|max:255',
+    'branch_name' => 'required|string|max:255',
+    'store_name' => 'required|string|max:255',
+    'store_id' => 'required|integer|exists:entity_stores,id', // Validate branch store_id
+    'external_id' => 'required',
+    'notification_to_order' => 'required|integer|min:1',
+    // Validate products array
+    'products' => 'required|array',
+    'products.*.product_id' => 'required',
+    'products.*.product_name' => 'required|string|max:255',
+    'products.*.daily_consumption' => 'required|numeric|min:0',
+    'products.*.safety_stock_days' => 'required|integer|min:0',
+    'products.*.buffer_stock' => 'required|integer|min:0',
+    'products.*.opening_stock' => 'required|integer|min:0',
+    'products.*.store_name' => 'required|string|max:255', // Validate product store_name
+    'products.*.store_id' => 'required|integer|exists:entity_stores,id', // Validate product store_id
+]);
 
             // Create entity
             $entity = Entity::create([
@@ -74,6 +77,8 @@ class EntityController extends Controller
                 'branch_id' => $branch->id,
                 'entity_id' => $entity->id,
                 'parent_store_id' => null,
+                'external_store_id' => $request->store_id, // Use store_id from request
+                'external_store_name' => $request->store_name, // Use store_name from request
                 'external_id' => $request->external_id,
                 'level' => 1,
                 'name' => $request->store_name,
@@ -100,6 +105,10 @@ class EntityController extends Controller
                     'item_code' => 'ITEM-' . $product['product_id'] . '-' . time(),
                     'external_id' => $entity->id,
                     'quantity' => $product['opening_stock'], // Initial quantity in delivery units
+                    'item_setting_id' => $itemSetting->id,
+                    'store_id' => $store->id, // Associate item with the store
+                    'external_store_id' => $product['store_id'], // Use store_id from product
+                    'external_store_name' => $product['store_name'], // Use store_name from product
                 ]);
 
                 ProductStockLevel::create([

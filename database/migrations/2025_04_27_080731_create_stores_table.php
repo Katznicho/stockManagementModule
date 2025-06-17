@@ -19,6 +19,8 @@ return new class extends Migration
             $table->string('name');
             $table->string('level');
             $table->foreignId('parent_store_id')->nullable()->constrained('stores');
+            $table->string('external_store_id')->nullable();
+            $table->string('external_store_name')->nullable();
             $table->timestamps();
         });
     }

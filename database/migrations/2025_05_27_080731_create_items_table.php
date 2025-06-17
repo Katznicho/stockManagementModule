@@ -8,6 +8,9 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
+     * 
+     *                    'item_setting_id' => $itemSetting->id,
+ 
      */
     public function up(): void
     {
@@ -18,6 +21,7 @@ return new class extends Migration
             //$table
             $table->integer('external_store_id')->nullable();
             $table->integer('external_store_name')->nullable();
+            $table->integer('item_setting_id')->nullable();
             $table->integer('external_id');
             $table->string('name');
             $table->string('quantity');
@@ -36,6 +40,7 @@ return new class extends Migration
             $table->string("lead_time")->nullable();
             $table->string("stock_levels_report")->nullable();
             $table->string("inventory_valuation_report")->nullable();
+
             $table->timestamps();
         });
     }

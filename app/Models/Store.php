@@ -15,6 +15,8 @@ class Store extends Model
         'name',
         'level',
         'parent_store_id',
+        'external_store_id',
+        'external_store_name',
     ];
 
     //relationships

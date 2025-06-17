@@ -34,6 +34,11 @@ class Item extends Model
         'opening_stock',
         'external_store_id',
         'external_store_name',
+        'item_setting_id',
+        'store_id',
+        'lead_time',
+        'stock_levels_report',
+        'inventory_valuation_report',
         
     ];
 
