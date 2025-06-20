@@ -34,6 +34,8 @@ return new class extends Migration
             $table->string("duom")->nullable();
             $table->string('suom_per_duom')->nullable();
             $table->string('suom_per_ouom')->nullable();
+            $table->string("stock_aging_days")->nullable(); // G! - AR!
+            $table->string("lead_time")->nullable(); // G! - AR!
 
             
             $table->timestamps();

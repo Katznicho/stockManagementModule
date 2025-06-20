@@ -115,7 +115,7 @@ class EntityController extends Controller
             ]);
 
             ProductStockLevel::create([
-                'item_id' => $item->id, // ✅ Correct: use DB ID
+                'item_id' => $item->id, // 
                 'external_item_id' => $product['product_id'],
                 'opening_stock' => $product['opening_stock'] ?? 0,
                 'deliveries_to_date' => 0,
@@ -126,7 +126,7 @@ class EntityController extends Controller
             ]);
 
             StockLevelDaysReport::create([
-                'item_id' => $item->id, // ✅ Correct: use DB ID
+                'item_id' => $item->id, // 
                 'external_item_id' => $product['product_id'],
                 'current_stock_level' => $product['opening_stock'] ?? 0,
                 'daily_sales' => 0,
@@ -145,6 +145,9 @@ class EntityController extends Controller
                 'store_id' => $store->id,
                 'external_store_id' => $product['store_id'],
                 'qty' => $product['opening_stock'], // Total quantity purchased in DUOM or SUOM
+                'stock_aging_days'=> 0, // Initial stock aging days,
+                'lead_time' => 0, // Initial lead time
+
             ]);
         }
 

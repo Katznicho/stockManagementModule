@@ -12,6 +12,7 @@ class ItemSale extends Model
     protected $fillable = [
         'item_id',
         'external_item_id',
+        'external_store_id', // Assuming this is the entity_id
         'entity_id',
         'external_id',
         'quantity_suom',

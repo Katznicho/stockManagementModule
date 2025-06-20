@@ -13,17 +13,17 @@ return new class extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('entity_id')->constrained('entities');
-            $table->foreignId('branch_id')->constrained('branches');
-            $table->foreignId('item_id')->constrained('items');
-            $table->foreignId('supplier_id')->constrained('suppliers');
+            $table->id();
+            $table->foreignId('item_id')->constrained()->onDelete('cascade');
             $table->integer('external_id');
-            $table->integer('order_qty_suom');
-            $table->integer('order_qty_ouom');
-            $table->string('order_amount_ugx');
+            $table->integer('external_store_id');
+            $table->decimal('quantity_ordered', 10, 2);
             $table->date('order_date');
-            $table->string('status');
+            $table->date('expected_delivery_date');
+            $table->date('actual_delivery_date')->nullable();
+            $table->string('status')->default('pending'); // pending, fulfilled, cancelled
             $table->timestamps();
+
         });
     }
 

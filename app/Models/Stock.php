@@ -34,8 +34,9 @@ class Stock extends Model
         'qty_sale_units',
         'external_id',
         'qty',
-        'external_store_id'
-        
+        'external_store_id',
+        'stock_aging_days',
+        'lead_time', 
     ];
 
 

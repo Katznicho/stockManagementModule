@@ -17,7 +17,7 @@ return new class extends Migration
             $table->unsignedBigInteger('external_item_id');
             $table->unsignedBigInteger('entity_id');
             $table->unsignedBigInteger('external_id'); // external_id of the entity
-
+            $table->unsignedBigInteger('external_store_id'); // Assuming this is the entity_id of the store
             $table->unsignedInteger('quantity_suom'); // Sale in SUOM
             $table->string('source')->nullable();     // e.g. 'api', 'manual', etc.
             $table->string('reference')->nullable();  // Optional transaction ID
