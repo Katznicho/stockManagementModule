@@ -20,6 +20,7 @@ class ItemSale extends Model
         'reference',
         'remarks',
         'sold_at',
+        'price', // Assuming price is a float
     ];
 
     protected $casts = [

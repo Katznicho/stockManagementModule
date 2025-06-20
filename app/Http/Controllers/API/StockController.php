@@ -24,9 +24,15 @@ class StockController extends Controller
     }
 
 
-     public function store(Request $request)
+    public function store(Request $request)
     {
         try {
+            // Default order_date to delivery_date if not provided
+            $data = $request->all();
+            if (!isset($data['order_date'])) {
+                $data['order_date'] = $request->input('delivery_date');
+            }
+
             $validated = $request->validate([
                 'product_id' => 'required|integer',
                 'branch_id' => 'required|integer',
@@ -36,11 +42,11 @@ class StockController extends Controller
                 'duom' => 'required|string',
                 'purchase_price' => 'required|numeric|min:0',
                 'delivery_date' => 'required|date',
-                'order_date' => 'nullable|date', // Optional order date
+                'order_date' => 'nullable|date', // Optional but will be set if missing
                 'suom' => 'required|string',
                 'sale_units_per_delivery' => 'required|numeric|min:1',
                 'qty_sale_units' => 'required|numeric|min:0',
-                'external_id' => 'required|integer', // Treated as entity_id
+                'external_id' => 'required|integer',
             ]);
 
             // Check for ItemSetting
@@ -80,7 +86,7 @@ class StockController extends Controller
             } else {
                 // Create new item
                 $item = Item::create([
-                    'entity_id' => $validated['external_id'],
+                    'entity_id' => $entity->id,
                     'external_item_id' => $validated['product_id'],
                     'name' => $itemSetting->name ?? 'Product ' . $validated['product_id'],
                     'item_code' => 'ITEM-' . $validated['product_id'] . '-' . time(),
@@ -91,7 +97,7 @@ class StockController extends Controller
 
             // Create Stock entry
             $stock = Stock::create([
-                'entity_id' => $validated['external_id'],
+                'entity_id' => $entity->id,
                 'branch_id' => $validated['branch_id'],
                 'item_id' => $item->id,
                 'store_id' => $validated['store_id'],
@@ -101,7 +107,7 @@ class StockController extends Controller
                 'closing_stock_suom' => $validated['qty_sale_units'], // Initial closing stock
                 'date_of_delivery' => $validated['delivery_date'],
                 'stock_aging_days' => 0, // Will be updated below
-                'lead_time' => $validated['order_date'] ? Carbon::parse($validated['delivery_date'])->diffInDays(Carbon::parse($validated['order_date'])) : 0,
+                'lead_time' => Carbon::parse($validated['delivery_date'])->diffInDays(Carbon::parse($validated['order_date'])),
                 'external_id' => $validated['external_id'],
                 'suom' => $validated['suom'],
                 'duom' => $validated['duom'],
@@ -128,7 +134,7 @@ class StockController extends Controller
             }
 
             // Calculate and update Stock Aging Report
-            $today = Carbon::now();
+            $today = Carbon::now(); // 03:25 PM EAT, June 20, 2025
             $lastDeliveryDate = Stock::where('item_id', $item->id)
                 ->where('closing_stock_suom', '>', 0)
                 ->orderBy('date_of_delivery', 'desc')
@@ -151,7 +157,6 @@ class StockController extends Controller
                     'item' => $item,
                 ]
             ], 201);
-
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'message' => 'Validation failed',
@@ -171,7 +176,7 @@ class StockController extends Controller
 
 
 
-public function reduceStock(Request $request)
+    public function reduceStock(Request $request)
     {
         try {
             $validated = $request->validate([
@@ -179,12 +184,22 @@ public function reduceStock(Request $request)
                 'external_id' => 'required|integer',
                 'quantity' => 'required|numeric|min:1', // quantity in SUOM
                 'external_store_id' => 'required|integer', // Assuming this is needed for the store
+                'price' => 'nullable|numeric|min:0', // Optional price for the sale
             ]);
 
             DB::beginTransaction();
 
+            $entity = Entity::where('external_id', $validated['external_id'])->first();
+            if (!$entity) {
+                return response()->json([
+                    'message' => 'Setup failed',
+                    'success' => false,
+                    'data' => 'No entity found for the given external_id'
+                ], 400);
+            }
+
             $item = Item::where([
-                'external_item_id' => $validated['product_id'],
+                'external_item_id' => $entity->id,
                 'entity_id' => $validated['external_id'],
                 'external_store_id' => $validated['external_store_id'],
             ])->first();
@@ -231,7 +246,7 @@ public function reduceStock(Request $request)
             ItemSale::create([
                 'item_id' => $item->id,
                 'external_item_id' => $item->external_item_id,
-                'entity_id' => $item->entity_id,
+                'entity_id' => $entity->id,
                 'external_id' => $validated['external_id'],
                 'quantity_suom' => $suomToReduce,
                 'source' => 'api',
@@ -239,10 +254,11 @@ public function reduceStock(Request $request)
                 'remarks' => null,
                 'sold_at' => now(),
                 'external_store_id' => $validated['external_store_id'],
+                'price' => $validated['price'] ?? null, // Optional price for the sale
             ]);
 
             // Calculate moving averages
-            $this->calculateMovingAverages($item->id, $validated['external_id'], $validated['external_store_id']);
+            //$this->calculateMovingAverages($item->id, $validated['external_id'], $validated['external_store_id'], $entity->id);
 
             DB::commit();
 
@@ -255,7 +271,6 @@ public function reduceStock(Request $request)
                     'reduced_suom' => $suomToReduce,
                 ]
             ], 200);
-
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'message' => 'Validation failed',
@@ -273,106 +288,107 @@ public function reduceStock(Request $request)
     }
 
     public function reduceStockBulk(Request $request)
-    {
-        try {
-            $validated = $request->validate([
-                'items' => 'required|array|min:1',
-                'items.*.product_id' => 'required|integer',
-                'items.*.external_id' => 'required|integer',
-                'items.*.quantity' => 'required|numeric|min:1', // quantity in SUOM
-                'items.*.external_store_id' => 'required|integer', // Added for store context
-            ]);
+{
+    try {
+        $validated = $request->validate([
+            'items' => 'required|array|min:1',
+            'items.*.product_id' => 'required|integer',
+            'items.*.quantity' => 'required|numeric|min:1', // Direct quantity to reduce
+            'items.*.price' => 'nullable|numeric|min:0', // Optional price for the sale
+            'external_id' => 'required|integer', // Moved to root level
+            'external_store_id' => 'required|integer', // Moved to root level
+        ]);
 
-            DB::beginTransaction();
+        DB::beginTransaction();
 
-            foreach ($validated['items'] as $entry) {
-                $item = Item::where([
-                    'external_item_id' => $entry['product_id'],
-                    'entity_id' => $entry['external_id'],
-                    'external_store_id' => $entry['external_store_id'],
-                ])->first();
+        $entity = Entity::where('external_id', $validated['external_id'])->first();
+        if (!$entity) {
+            return response()->json([
+                'message' => 'Setup failed',
+                'success' => false,
+                'data' => 'No entity found for the given external_id'
+            ], 400);
+        }
 
-                if (!$item) {
-                    DB::rollBack();
-                    return response()->json([
-                        'message' => 'Item not found for product ID: ' . $entry['product_id'],
-                        'success' => false,
-                    ], 404);
-                }
+        foreach ($validated['items'] as $entry) {
+            $item = Item::where([
+                'external_item_id' => $entry['product_id'],
+                'entity_id' => $entity->id,
+                'external_store_id' => $validated['external_store_id'], // Use root-level external_store_id
+            ])->first();
 
-                $suomPerDuom = $item->suom_per_duom;
-                if (!$suomPerDuom || $suomPerDuom <= 0) {
-                    DB::rollBack();
-                    return response()->json([
-                        'message' => 'Conversion ratio not found for product ID: ' . $entry['product_id'],
-                        'success' => false,
-                    ], 400);
-                }
-
-                $suomQty = $entry['quantity'];
-                $duomQty = $suomQty / $suomPerDuom;
-
-                if ($item->quantity < $duomQty) {
-                    DB::rollBack();
-                    return response()->json([
-                        'message' => 'Not enough stock for product ID: ' . $entry['product_id'],
-                        'success' => false,
-                        'available_duom' => $item->quantity,
-                        'requested_duom' => $duomQty
-                    ], 400);
-                }
-
-                // Reduce DUOM quantity from item
-                $item->decrement('quantity', $duomQty);
-
-                // Update Product Stock Level (SUOM)
-                ProductStockLevel::where('item_id', $item->id)->increment('sales_to_date', $suomQty);
-
-                // Update Stock Level Report (SUOM)
-                StockLevelDaysReport::where('item_id', $item->id)->decrement('current_stock_level', $suomQty);
-
-                // Log the sale
-                ItemSale::create([
-                    'item_id' => $item->id,
-                    'external_item_id' => $item->external_item_id,
-                    'entity_id' => $item->entity_id,
-                    'external_id' => $entry['external_id'],
-                    'quantity_suom' => $suomQty,
-                    'source' => 'api',
-                    'reference' => null,
-                    'remarks' => null,
-                    'sold_at' => now(),
-                    'external_store_id' => $entry['external_store_id'],
-                ]);
-
-                // Calculate moving averages
-                $this->calculateMovingAverages($item->id, $entry['external_id'], $entry['external_store_id']);
+            if (!$item) {
+                DB::rollBack();
+                return response()->json([
+                    'message' => 'Item not found for product ID: ' . $entry['product_id'],
+                    'success' => false,
+                ], 404);
             }
 
-            DB::commit();
+            $quantityToReduce = $entry['quantity'];
 
-            return response()->json([
-                'message' => 'Bulk stock reduction successful',
-                'success' => true
-            ], 200);
+            if ($item->quantity < $quantityToReduce) {
+                DB::rollBack();
+                return response()->json([
+                    'message' => 'Not enough stock for product ID: ' . $entry['product_id'],
+                    'success' => false,
+                    'available' => $item->quantity,
+                    'requested' => $quantityToReduce
+                ], 400);
+            }
 
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                'message' => 'Validation failed',
-                'success' => false,
-                'errors' => $e->errors()
-            ], 422);
-        } catch (\Throwable $th) {
-            DB::rollBack();
-            return response()->json([
-                'message' => 'Bulk reduction failed',
-                'success' => false,
-                'error' => $th->getMessage()
-            ], 500);
+            // Reduce quantity directly from item
+            $item->decrement('quantity', $quantityToReduce);
+
+            // Update Product Stock Level
+            ProductStockLevel::where('item_id', $item->id)->increment('sales_to_date', $quantityToReduce);
+
+            // Update Stock Level Report
+            StockLevelDaysReport::where('external_item_id', $entry['product_id'])->decrement('current_stock_level', $quantityToReduce);
+
+            // Log the sale
+            ItemSale::create([
+                'item_id' => $item->id,
+                'external_item_id' => $item->external_item_id,
+                'entity_id' => $entity->id,
+                'external_id' => $validated['external_id'],
+                'quantity_suom' => $quantityToReduce,
+                'source' => 'api',
+                'reference' => null,
+                'sold_at' => now(),
+                'external_store_id' => $validated['external_store_id'],
+                'price' => $entry['price'] ?? null, // Optional price for the sale
+            ]);
+
+            // Calculate moving averages
+            $this->calculateMovingAverages($item->id, $item->external_item_id ,$validated['external_id'], $validated['external_store_id'], $entity->id);
         }
-    }
 
-    protected function calculateMovingAverages($itemId, $externalId, $externalStoreId)
+        DB::commit();
+
+        return response()->json([
+            'message' => 'Bulk stock reduction successful',
+            'success' => true
+        ], 200);
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        return response()->json([
+            'message' => 'Validation failed',
+            'success' => false,
+            'errors' => $e->errors()
+        ], 422);
+    } catch (\Throwable $th) {
+        DB::rollBack();
+        return response()->json([
+            'message' => 'Bulk reduction failed',
+            'success' => false,
+            'error' => $th->getMessage()
+        ], 500);
+    }
+}
+
+    
+
+    protected function calculateMovingAverages($itemId, $externalItemId, $externalId, $externalStoreId, $entityId)
     {
         $sales = ItemSale::where('item_id', $itemId)
             ->where('entity_id', $externalId)
@@ -392,10 +408,10 @@ public function reduceStock(Request $request)
         $annualSales = $sales->where('sold_at', '>=', now()->subDays(365))->sum('quantity_suom') / 365;
 
         MovingAverage::updateOrCreate(
-            ['item_id' => $itemId, 'external_id' => $externalId, 'external_store_id' => $externalStoreId],
+            ['item_id' => $itemId, 'external_id' => $externalId],
             [
-                'entity_id' => $externalId,
-                'external_item_id' => $sales->first()->external_item_id ?? null,
+                'entity_id' => $entityId,
+                'external_item_id' => $externalItemId,
                 'bi_monthly_suom' => (string)$biMonthlySales,
                 'monthly_suom' => (string)$monthlySales,
                 'quarterly_suom' => (string)$quarterlySales,
@@ -423,15 +439,15 @@ public function reduceStock(Request $request)
         return response()->noContent();
     }
 
-    public  function getStockByExternalId($externalId) {
+    public  function getStockByExternalId($externalId)
+    {
         try {
             $store = Item::where('external_id', $externalId)
-             ->with(['stocks'])
-            ->get();
-            return response()->json(['data' => $store,'success' => true]);
-        }
-        catch (\Exception $e) {
-            return response()->json(['message' => 'An error occurred while fetching stores.','success' => false]);
+                ->with(['stocks'])
+                ->get();
+            return response()->json(['data' => $store, 'success' => true]);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'An error occurred while fetching stores.', 'success' => false]);
         }
     }
 
@@ -503,7 +519,6 @@ public function reduceStock(Request $request)
                 'success' => true,
                 'data' => $order,
             ], 201);
-
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'message' => 'Validation failed',
@@ -568,7 +583,6 @@ public function reduceStock(Request $request)
                     'needs_reorder' => $needsReorder,
                 ]
             ], 200);
-
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'message' => 'Validation failed',

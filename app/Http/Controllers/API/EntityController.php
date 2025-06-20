@@ -106,7 +106,7 @@ class EntityController extends Controller
                 'external_item_id' => $product['product_id'],
                 'name' => $itemSetting->name ?? 'Product ' . $product['product_id'],
                 'item_code' => 'ITEM-' . $product['product_id'] . '-' . time(),
-                'external_id' => $entity->id,
+                'external_id' =>$request->external_id,
                 'quantity' => $product['opening_stock'], // Initial quantity in delivery units
                 'item_setting_id' => $itemSetting->id,
                 'store_id' => $store->id, // Associate item with the store

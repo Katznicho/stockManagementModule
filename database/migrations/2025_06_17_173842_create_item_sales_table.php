@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('source')->nullable();     // e.g. 'api', 'manual', etc.
             $table->string('reference')->nullable();  // Optional transaction ID
             $table->text('remarks')->nullable();
-
+            $table->string('price')->nullable(); // Assuming price is a float
             $table->timestamp('sold_at')->nullable();
             $table->timestamps();
 
