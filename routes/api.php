@@ -6,6 +6,7 @@ use App\Http\Controllers\API\ItemController;
 use App\Http\Controllers\API\StockController;
 use App\Http\Controllers\API\StoreController;
 use App\Http\Controllers\API\ItemSaleController;
+use App\Http\Controllers\API\SettingController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -55,3 +56,7 @@ Route::get('getSalesByExternalId/{externalId}', [ItemSaleController::class, 'get
 
 // Route::get("getBranchesByExternalId/")
 
+
+//order settings
+Route::get("getMakeOrderSettingsByExternalId/{externalId}", [SettingController::class, "getMakeOrderSettingsByExternalId"]);
+Route::get("getOrderSettingsByExternalId/{externalId}", [SettingController::class, "getOrderSettingsByExternalId"]);
