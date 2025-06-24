@@ -39,6 +39,7 @@ class StockController extends Controller
                 'physical_stock_suom' => 'required|numeric|min:0',
                 'stock_count_date' => 'required|date',
                 'damaged_stock_suom' => 'nullable|numeric|min:0', //
+                'item_id' => 'nullable|integer', // Optional, if you want to specify an item_id
 
                 // 'store_id' => 'required|integer',
             ]);
@@ -72,6 +73,7 @@ class StockController extends Controller
                 'damaged_stock_suom' => $validated['damaged_stock_suom'] ?? 0,
                 'date' => $validated['stock_count_date'],
                 'external_id' => $validated['external_id'],
+                'item_id' => $item->id
             ]);
             if(!$stockCount) {
                 return response()->json([

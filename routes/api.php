@@ -5,6 +5,7 @@ use App\Http\Controllers\API\EntityController;
 use App\Http\Controllers\API\ItemController;
 use App\Http\Controllers\API\StockController;
 use App\Http\Controllers\API\StoreController;
+use App\Http\Controllers\API\ItemSaleController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -45,6 +46,11 @@ Route::get('getStockByExternalId/{externalId}', [StockController::class, 'getSto
 Route::post('reduceStock', [StockController::class,'reduceStock']);
 Route::post("reduceStockBulk", [StockController::class, "reduceStockBulk"]);
 Route::post("stockCount", [StockController::class, "stockCount"]);
+
+
+//sales
+//getSalesByExternalId
+Route::get('getSalesByExternalId/{externalId}', [ItemSaleController::class, 'getSalesByExternalId']);
 
 
 // Route::get("getBranchesByExternalId/")
