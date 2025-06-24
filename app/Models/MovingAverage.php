@@ -18,5 +18,6 @@ class MovingAverage extends Model
         'quarterly_suom',
         'biannual_suom',
         'annual_suom',
+        'calculated_at'
     ];
 }

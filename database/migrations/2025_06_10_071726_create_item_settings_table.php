@@ -22,6 +22,8 @@ return new class extends Migration
             $table->string("name");
             $table->string('daily_consumption')->nullable();
             $table->integer('safety_stock_days')->nullable();
+            $table->string('buffer_stock_days')->default(0);
+            $table->string("safety_stock")->default(0);
             $table->string('buffer_stock')->default(0);
             $table->string('opening_stock')->default(0);
             

@@ -11,19 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('moving_averages', function (Blueprint $table) {
+        Schema::create('current_stocks', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('entity_id')->index();
             $table->unsignedBigInteger('item_id');
             $table->unsignedBigInteger('external_item_id');
             $table->unsignedBigInteger('external_id'); // external_id of the entity
-            $table->string('bi_monthly_suom');
-            $table->string('monthly_suom');
-            //calculated_at
-            $table->timestamp('calculated_at')->nullable();
-            $table->string('quarterly_suom');
-            $table->string('biannual_suom');
-            $table->string('annual_suom');
+            $table->string("physical_stock")->default(0);
+            $table->string("purchases")->default(0);
+            $table->string("sales")->default(0);
+            $table->string("transfers")->default(0);
+            $table->date("date")->default(now());
             $table->timestamps();
         });
     }
@@ -33,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('moving_averages');
+        Schema::dropIfExists('current_stocks');
     }
 };

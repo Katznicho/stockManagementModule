@@ -44,6 +44,7 @@ Route::get('getStockByExternalId/{externalId}', [StockController::class, 'getSto
 //stock reduction
 Route::post('reduceStock', [StockController::class,'reduceStock']);
 Route::post("reduceStockBulk", [StockController::class, "reduceStockBulk"]);
+Route::post("stockCount", [StockController::class, "stockCount"]);
 
 
 // Route::get("getBranchesByExternalId/")

@@ -12,9 +12,11 @@ use App\Models\ProductStockLevel;
 use App\Models\Stock;
 use App\Models\StockLevelDaysReport;
 use App\Models\Store;
+use App\Models\SystemStock;
+use App\Models\CurrentStock;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-//$jov*oP3f
+
 
 class EntityController extends Controller
 {
@@ -97,8 +99,10 @@ class EntityController extends Controller
                 'name' => $product['product_name'],
                 'daily_consumption' => $product['daily_consumption'],
                 'safety_stock_days' => $product['safety_stock_days'],
-                'buffer_stock' => $product['buffer_stock'],
+                'buffer_stock_days' => $product['buffer_stock'],
                 'opening_stock' => $product['opening_stock'],
+                'buffer_stock'=> $product['buffer_stock']* $product['daily_consumption'], // Calculate buffer stock based on daily consumption
+                'safety_stock' => $product['safety_stock_days'] * $product['daily_consumption'], // Calculate safety stock based on daily consumption
             ]);
 
             $item = Item::create([
@@ -135,6 +139,34 @@ class EntityController extends Controller
                 'entity_id' => $entity->id,
                 'external_id' => $request->external_id,
             ]);
+
+
+            SystemStock::create([
+                'entity_id' => $entity->id,
+                'external_item_id' => $product['product_id'],
+                'item_id' => $item->id,
+                'external_id' => $request->external_id,
+                'opening_stock' => $product['opening_stock'], // Total quantity purchased in DUOM or SUOM
+                'purchases' => 0, // Initial purchases
+                'sales' => 0, // Initial sales
+                'returns' => 0, // Initial returns
+                'date' => now(), // Current date
+            ]);
+
+            // Create CurrentStock entry
+            $currentStock = [
+                'entity_id' => $entity->id,
+                'item_id' => $item->id,
+                'external_item_id' => $product['product_id'],
+                'external_id' => $request->external_id,
+                'physical_stock' => $product['opening_stock'], // Initial physical stock
+                'purchases' => 0, // Initial purchases
+                'sales' => 0, // Initial sales
+                'transfers' => 0, // Initial transfers
+                'date' => now(), // Current date
+            ];
+            // Create CurrentStock entry
+            CurrentStock::create($currentStock);
 
             // Create Stock entry
             $stock = Stock::create([

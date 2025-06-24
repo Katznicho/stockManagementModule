@@ -8,22 +8,21 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
+     * 
+     *             // 'physical_stock_suom' => $request->input('physical_stock_suom'),
+
      */
     public function up(): void
     {
-        Schema::create('moving_averages', function (Blueprint $table) {
+        Schema::create('stock_counts', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('entity_id')->index();
             $table->unsignedBigInteger('item_id');
             $table->unsignedBigInteger('external_item_id');
             $table->unsignedBigInteger('external_id'); // external_id of the entity
-            $table->string('bi_monthly_suom');
-            $table->string('monthly_suom');
-            //calculated_at
-            $table->timestamp('calculated_at')->nullable();
-            $table->string('quarterly_suom');
-            $table->string('biannual_suom');
-            $table->string('annual_suom');
+            $table->date("date")->index();
+            $table->decimal('physical_stock_suom', 10, 2)->default(0.00);
+            $table->decimal('damaged_stock_suom', 10, 2)->default(0.00);  
             $table->timestamps();
         });
     }
@@ -33,6 +32,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('moving_averages');
+        Schema::dropIfExists('stock_counts');
     }
 };

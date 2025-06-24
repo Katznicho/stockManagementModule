@@ -8,7 +8,7 @@ public function confirmAndProceed()
     DB::beginTransaction();
     try {
         $saleItems = $this->getTableQuery()->get();
-        // dd($saleItems->toArray()); // Uncomment for debugging
+        // dd($saleItems->toArray()); // Debugging line to inspect fetched sale items
         Log::info('Fetched sale items for confirmation: ', ['count' => $saleItems->count()]);
         if ($saleItems->isEmpty()) {
             throw new \Exception('No sale items found to confirm.');
@@ -49,12 +49,10 @@ public function confirmAndProceed()
                     $this->applyStatusChange($saleItem, $pendingStatus);
                     $saleItem->update(['is_confirmed' => true]);
 
-                    // Prepare data for bulk stock reduction including price
+                    // Prepare data for bulk stock reduction
                     $bulkReduceItems[] = [
                         'product_id' => $saleItem->ProductID,
-                        'external_id' => $this->user->entity_id ?? 1, // Assume entity_id from user, fallback to 1
                         'quantity' => $saleItem->Quantity,
-                        'external_store_id' => 1, // As specified
                         'price' => (float)$saleItem->Price, // Convert Price to float
                     ];
                 }
@@ -70,9 +68,14 @@ public function confirmAndProceed()
         if (!empty($bulkReduceItems) && !$isAdmin) {
             $baseUrl = config('services.stock_api.base_url');
             $url = "{$baseUrl}/reduceStockBulk";
+            $payload = [
+                'items' => $bulkReduceItems,
+                'external_id' => $this->user->entity_id ?? 1, // Derive from user, fallback to 1
+                'external_store_id' => 1, // Fixed value as specified
+            ];
             $response = Http::withHeaders(['Accept' => 'application/json'])->post(
                 $url,
-                ['items' => $bulkReduceItems]
+                $payload
             );
 
             if ($response->failed()) {
