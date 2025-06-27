@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             // Parameter type: either forecast days or budget
             $table->enum('parameter', ['forecast_demand_days', 'budget'])->comment('Order type: forecast_demand_days or budget');
-             $table->unsignedBigInteger('entity_id')->index();
+             $table->unsignedBigInteger('external_id')->index();
             // User-defined value for the order setting
             $table->string('value')->nullable();
             // Amount in days until next order, calculated or defined

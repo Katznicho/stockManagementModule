@@ -60,3 +60,6 @@ Route::get('getSalesByExternalId/{externalId}', [ItemSaleController::class, 'get
 //order settings
 Route::get("getMakeOrderSettingsByExternalId/{externalId}", [SettingController::class, "getMakeOrderSettingsByExternalId"]);
 Route::get("getOrderSettingsByExternalId/{externalId}", [SettingController::class, "getOrderSettingsByExternalId"]);
+
+
+Route::post("storeBulkOrder", [App\Http\Controllers\API\OrderController::class, "storeBulkOrder"]);

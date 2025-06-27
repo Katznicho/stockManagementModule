@@ -17,10 +17,11 @@ class SettingController extends Controller
         }
         try {
             $store = MakeOrderSetting::where('external_id', $externalId)
-                ->get();
+                ->first();
+                
             return response()->json(['data' => $store, 'success' => true]);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'An error occurred while fetching stores.', 'success' => false]);
+            return response()->json(['message' => 'An error occurred while fetching orders.', 'success' => false]);
         }
     }
 
@@ -31,10 +32,10 @@ class SettingController extends Controller
         }
         try {
             $store = OrderSetting::where('external_id', $externalId)
-                ->get();
+                ->first();
             return response()->json(['data' => $store, 'success' => true]);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'An error occurred while fetching stores.', 'success' => false]);
+            return response()->json(['message' => 'An error occurred while fetching orders.', 'success' => false]);
         }
     }
 }
