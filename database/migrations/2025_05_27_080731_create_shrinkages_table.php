@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('entity_id')->constrained('entities');
             $table->foreignId('branch_id')->constrained('branches');
             $table->foreignId('item_id')->constrained('items');
-            $table->foreignId('store_id')->constrained('stores');
+            $table->foreignId('store_id')->nullable()->constrained('stores');
             $table->integer('system_qty_suom');
             $table->integer('external_id');
             $table->integer('physical_qty_suom');

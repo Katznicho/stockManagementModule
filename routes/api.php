@@ -47,6 +47,8 @@ Route::get('getStockByExternalId/{externalId}', [StockController::class, 'getSto
 Route::post('reduceStock', [StockController::class,'reduceStock']);
 Route::post("reduceStockBulk", [StockController::class, "reduceStockBulk"]);
 Route::post("stockCount", [StockController::class, "stockCount"]);
+//bulkStockCount
+Route::post("bulkStockCount", [StockController::class, "bulkStockCount"]);
 
 
 //sales

@@ -17,6 +17,7 @@ use App\Models\MovingAverage;
 use App\Models\Order;
 use App\Models\SystemStock;
 use App\Models\CurrentStock;
+use App\Models\Shrinkage;
 use Carbon\Carbon;
 
 class StockController extends Controller
@@ -107,7 +108,106 @@ class StockController extends Controller
             ], 500);
         }
     }
-    //stock count    
+    //stock count 
+
+
+
+    //bulky stock count
+ public function bulkStockCount(Request $request)
+{
+    try {
+        $validated = $request->validate([
+            'external_id' => 'required|integer',
+            'items' => 'required|array|min:1',
+            'items.*.external_item_id' => 'required|integer',
+            'items.*.branch_id' => 'required|integer',
+            'items.*.physical_stock_suom' => 'required|numeric|min:0',
+            'items.*.stock_count_date' => 'required|date',
+            'items.*.damaged_stock_suom' => 'nullable|numeric|min:0',
+        ]);
+
+        $entity = Entity::where('external_id', $validated['external_id'])->first();
+        if (!$entity) {
+            return response()->json([
+                'message' => 'Setup failed',
+                'success' => false,
+                'data' => 'No entity found for the given external_id'
+            ], 400);
+        }
+
+        $createdStockCounts = [];
+
+        foreach ($validated['items'] as $itemData) {
+            $item = Item::where([
+                'external_item_id' => $itemData['external_item_id'],
+                'entity_id' => $entity->id,
+            ])->first();
+
+            if (!$item) continue;
+
+            // Create stock count record
+            $stockCount = StockCount::create([
+                'entity_id' => $entity->id,
+                'external_item_id' => $itemData['external_item_id'],
+                'branch_id' => $itemData['branch_id'],
+                'physical_stock_suom' => $itemData['physical_stock_suom'],
+                'damaged_stock_suom' => $itemData['damaged_stock_suom'] ?? 0,
+                'date' => $itemData['stock_count_date'],
+                'external_id' => $validated['external_id'],
+                'item_id' => $item->id,
+            ]);
+
+            // Update current stock
+            $currentStock = CurrentStock::firstOrNew(['item_id' => $item->id]);
+            $currentStock->physical_stock += $itemData['physical_stock_suom'];
+            $currentStock->save();
+
+            // ✅ Update Item quantity
+            $systemQty = $item->quantity ?? 0;
+            $item->quantity = $itemData['physical_stock_suom'];
+            $item->save();
+
+            // ✅ Create Shrinkage entry
+            Shrinkage::create([
+                'entity_id' => $entity->id,
+                'branch_id' => $itemData['branch_id'],
+                'item_id' => $item->id,
+                'system_qty_suom' => $systemQty,
+                'physical_qty_suom' => $itemData['physical_stock_suom'],
+                'shrinkage_percentage' => $systemQty > 0
+                    ? round((($systemQty - $itemData['physical_stock_suom']) / $systemQty) * 100, 2)
+                    : null,
+                'shrinkage_amount_ugx' => ($item->purchase_price ?? 0) * max(0, $systemQty - $itemData['physical_stock_suom']),
+                'stock_take_date' => $itemData['stock_count_date'],
+                'external_id' => $validated['external_id'],
+            ]);
+
+            $createdStockCounts[] = $stockCount;
+        }
+
+        return response()->json([
+            'message' => 'Bulk stock count processed',
+            'success' => true,
+            'data' => $createdStockCounts,
+        ]);
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        return response()->json([
+            'message' => 'Validation failed',
+            'success' => false,
+            'errors' => $e->errors()
+        ], 422);
+    } catch (\Throwable $th) {
+        return response()->json([
+            'message' => 'Failed to process bulk stock count',
+            'success' => false,
+            'error' => $th->getMessage()
+        ], 500);
+    }
+}
+
+
+    //bulk stock count
+
     public function store(Request $request)
     {
         try {
