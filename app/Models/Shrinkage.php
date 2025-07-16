@@ -19,7 +19,8 @@ class Shrinkage extends Model
         'shrinkage_percentage',
         'shrinkage_amount_ugx',
         'stock_take_date',  
-        'external_id'
+        'external_id',
+        'branch_name'
     ];
 
     //relations

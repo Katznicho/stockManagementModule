@@ -171,6 +171,7 @@ class StockController extends Controller
             Shrinkage::create([
                 'entity_id' => $entity->id,
                 'branch_id' => $itemData['branch_id'],
+                'branch_name' => $item->branch->name ?? null, // Assuming branch has a name attribute
                 'item_id' => $item->id,
                 'system_qty_suom' => $systemQty,
                 'physical_qty_suom' => $itemData['physical_stock_suom'],
@@ -848,4 +849,39 @@ class StockController extends Controller
         }
     }
     //odering
+
+
+
+    //shrinkages
+          public function getShrinkagesByExternalId($external_id)
+{
+    try {
+        $entity = Entity::where('external_id', $external_id)->first();
+
+        if (!$entity) {
+            return response()->json([
+                'message' => 'Entity not found',
+                'success' => false,
+            ], 404);
+        }
+
+        $shrinkages = Shrinkage::with(['item', 'branch', 'store'])
+            ->where('entity_id', $entity->id)
+            ->orderBy('stock_take_date', 'desc')
+            ->get();
+
+        return response()->json([
+            'message' => 'Shrinkages retrieved successfully',
+            'success' => true,
+            'data' => $shrinkages
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'message' => 'Failed to retrieve shrinkages',
+            'success' => false,
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
+    //shrinakges
 }

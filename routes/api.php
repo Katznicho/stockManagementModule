@@ -7,16 +7,13 @@ use App\Http\Controllers\API\StockController;
 use App\Http\Controllers\API\StoreController;
 use App\Http\Controllers\API\ItemSaleController;
 use App\Http\Controllers\API\SettingController;
+use App\Http\Controllers\API\ShrinkageController;
+use App\Http\Controllers\API\OrderController;
+use App\Models\Stock;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 
-
-
-
-// Route::get('/user', function (Request $request) {
-//     return $request->user();
-// })->middleware('auth:sanctum');
 
 Route::post("moduleSetup", [EntityController::class, "moduleSetup"]);
 
@@ -56,12 +53,12 @@ Route::post("bulkStockCount", [StockController::class, "bulkStockCount"]);
 Route::get('getSalesByExternalId/{externalId}', [ItemSaleController::class, 'getSalesByExternalId']);
 
 
-// Route::get("getBranchesByExternalId/")
-
-
 //order settings
 Route::get("getMakeOrderSettingsByExternalId/{externalId}", [SettingController::class, "getMakeOrderSettingsByExternalId"]);
 Route::get("getOrderSettingsByExternalId/{externalId}", [SettingController::class, "getOrderSettingsByExternalId"]);
 
+Route::post("storeBulkOrder", [OrderController::class, "storeBulkOrder"]);
 
-Route::post("storeBulkOrder", [App\Http\Controllers\API\OrderController::class, "storeBulkOrder"]);
+//shrinkages
+// Route::get('shrinkages/by-external/{external_id}', [ShrinkageController::class, 'getShrinkagesByExternalId']);
+Route::get('shrinkages/by-external/{external_id}', [StockController::class, 'getShrinkagesByExternalId']);

@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('shrinkages', function (Blueprint $table) {
             $table->id();
             $table->foreignId('entity_id')->constrained('entities');
-            $table->foreignId('branch_id')->constrained('branches');
+            $table->foreignId('branch_id')->nullable()->constrained('branches');
+            $table->string('branch_name')->nullable(); // Nullable to allow for branches without a name
             $table->foreignId('item_id')->constrained('items');
             $table->foreignId('store_id')->nullable()->constrained('stores');
             $table->integer('system_qty_suom');
